@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Analytics - AetherLink</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="back-header">
+            <a th:href="@{/dashboard}" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </a>
+            <div>
+                <h1 style="font-size: 1.6rem; font-weight: 700;">Link Telemetry</h1>
+            </div>
+        </header>
+
+        <!-- Link Details Bar -->
+        <div class="analytics-link-bar">
+            <div class="analytics-link-info">
+                <h2 th:text="${shortUrl.title}">Link Title</h2>
+                <a th:href="${baseUrl + '/' + shortUrl.shortCode}" target="_blank" th:text="${baseUrl.replace('http://','').replace('https://','') + '/' + shortUrl.shortCode}">short.link/xyz</a>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px; word-break: break-all;">
+                    Destination: <span th:text="${shortUrl.originalUrl}">https://destination-url.com</span>
+                </p>
+            </div>
+            <div class="link-clicks-indicator" style="margin-right: 0;">
+                <span class="clicks-count" th:text="${shortUrl.clickCount}">0</span>
+                <span class="clicks-lbl">Total Clicks</span>
+            </div>
+        </div>
+
+        <!-- Empty state when clickCount is 0 -->
+        <div th:if="${shortUrl.clickCount == 0}" class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 20px;">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                <line x1="7" y1="2" x2="7" y2="22"></line>
+                <line x1="17" y1="2" x2="17" y2="22"></line>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <line x1="2" y1="7" x2="7" y2="7"></line>
+                <line x1="2" y1="17" x2="7" y2="17"></line>
+                <line x1="17" y1="17" x2="22" y2="17"></line>
+                <line x1="17" y1="7" x2="22" y2="7"></line>
+            </svg>
+            <p>No click telemetry recorded yet. Share your short link to start collecting statistics!</p>
+            <div style="margin-top: 15px;">
+                <span class="btn btn-primary copy-badge" th:data-copy="${baseUrl + '/' + shortUrl.shortCode}">Copy Link to Share</span>
+            </div>
+        </div>
+
+        <!-- Analytics Charts Grid -->
+        <div th:if="${shortUrl.clickCount > 0}">
+            <div class="analytics-charts-grid">
+                <!-- Clicks Over Time -->
+                <div class="chart-card">
+                    <h4>Clicks Over Time</h4>
+                    <div class="chart-container">
+                        <canvas id="dateChart"></canvas>
+                    </div>
+                </div>
+                <!-- Referrers -->
+                <div class="chart-card">
+                    <h4>Top Referrers</h4>
+                    <div class="chart-container">
+                        <canvas id="referrerChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analytics-charts-subgrid" style="margin-bottom: 30px;">
+                <!-- Browsers -->
+                <div class="chart-card">
+                    <h4>Browsers</h4>
+                    <div class="chart-container">
+                        <canvas id="browserChart"></canvas>
+                    </div>
+                </div>
+                <!-- OS -->
+                <div class="chart-card">
+                    <h4>Operating Systems</h4>
+                    <div class="chart-container">
+                        <canvas id="osChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Clicks Table -->
+            <div class="section-header">
+                <h3>Detailed Click History</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>IP Address</th>
+                            <th>OS</th>
+                            <th>Browser</th>
+                            <th>Referrer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="log : ${latestLogs}">
+                            <td th:text="${#temporals.format(log.clickTime, 'yyyy-MM-dd HH:mm:ss')}">2026-06-28 12:00:00</td>
+                            <td th:text="${log.ipAddress}">127.0.0.1</td>
+                            <td th:text="${log.operatingSystem}">macOS</td>
+                            <td th:text="${log.browser}">Chrome</td>
+                            <td th:text="${log.referrer}">Direct</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inject data variables into frontend global -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.analyticsData = {
+            clicksByDate: /*[[${clicksByDate}]]*/ {},
+            clicksByBrowser: /*[[${clicksByBrowser}]]*/ {},
+            clicksByOs: /*[[${clicksByOs}]]*/ {},
+            clicksByReferrer: /*[[${clicksByReferrer}]]*/ {}
+        };
+        /*]]>*/
+    </script>
+    <!-- Custom scripts -->
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script th:src="@{/js/analytics.js}"></script>
+</body>
+</html>
