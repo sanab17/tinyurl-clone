@@ -1,0 +1,27 @@
+# Maven
+target/
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# H2 Database
+data/
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# OS files
+Thumbs.db
+
+# Temporary files
+*.tmp
