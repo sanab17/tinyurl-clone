@@ -2,6 +2,8 @@ package com.urlshortener.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "short_urls")
@@ -32,6 +34,9 @@ public class ShortUrl {
 
     @Column(columnDefinition = "TEXT")
     private String qrCodeBase64;
+
+    @OneToMany(mappedBy = "shortUrl", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ClickAnalytic> clickAnalytics = new ArrayList<>();
 
     public ShortUrl() {
     }
@@ -115,5 +120,13 @@ public class ShortUrl {
 
     public void setQrCodeBase64(String qrCodeBase64) {
         this.qrCodeBase64 = qrCodeBase64;
+    }
+
+    public List<ClickAnalytic> getClickAnalytics() {
+        return clickAnalytics;
+    }
+
+    public void setClickAnalytics(List<ClickAnalytic> clickAnalytics) {
+        this.clickAnalytics = clickAnalytics;
     }
 }
