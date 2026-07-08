@@ -1,122 +1,219 @@
-# AI Coding Agent Instructions for AetherLink URL Shortener
+# Purpose
 
-## Project Overview
-AetherLink is a Spring Boot 3.3.1 URL shortening service with authentication, link analytics, and QR code generation. The architecture uses a three-layer pattern (Controller → Service → Repository) with H2 file-based persistence.
+This project is part of the **"Can AI Build Real Apps?"** series on **Systems with Sana**. The goal is to explore AI-assisted software development by building production-inspired applications while reviewing and improving the generated code like a real engineering code review.
 
-## Architecture & Data Flow
+When generating code:
 
-### Core Components
-- **Auth Layer**: `AuthController` → `UserService` (BCrypt password encoding via `SecurityConfig`)
-- **Link Management**: `DashboardController` → `ShortUrlService` → `ShortUrlRepository`
-- **Analytics**: `DashboardController` collects click metrics, `RedirectController` captures visitor details
-- **QR Codes**: Generated server-side by `QrCodeService` (ZXing library), stored as Base64 in `ShortUrl.qrCodeBase64`
+- Prefer clean, maintainable, production-inspired solutions.
+- Explain important architectural decisions when they are not obvious.
+- Avoid unnecessary complexity or over-engineering.
+- Generate code that is educational and follows Spring Boot best practices.
+- Prioritize readability, maintainability, and consistency over clever implementations.
 
-### Request Flow for Short Link Creation
-1. User submits form in `dashboard.html` → `POST /dashboard/create`
-2. `DashboardController.createShortUrl()` delegates to `ShortUrlService.createShortUrl()`
-3. Service validates custom alias (3-20 chars, alphanumeric + `-_`), generates random 6-char code if needed
-4. Reserved keywords (`login`, `register`, `dashboard`, etc.) are blocked
-5. QR code generated and stored; `ShortUrl` entity saved to H2 database
+---
 
-### Click Tracking Flow
-1. Redirect hit `GET /{code}` → `RedirectController.redirect()`
-2. Captures IP (with `X-Forwarded-For` header support), User-Agent, Referer
-3. `UserAgentParser` extracts browser and OS (e.g., "Chrome", "macOS")
-4. `ClickAnalytic` record persisted; `ShortUrl.clickCount` incremented
-5. Analytics aggregated in `DashboardController.viewAnalytics()` using Java Streams (grouped by date, browser, OS, referrer)
+# Coding Standards
 
-### Frontend Rendering
-- **Thymeleaf templates** receive aggregated analytics as Maps (e.g., `clicksByDate: {"2026-06-28": 5}`)
-- **Chart.js** renders line chart (clicks over time), doughnut charts (browsers/OS), bar chart (referrers)
-- **Cyber-glass design**: CSS variables (`--accent-blue`, `--glass-bg`) define dark theme with gradient accents
+- Use constructor injection only. Never use field injection.
+- Keep controllers thin; business logic belongs in the service layer.
+- Services should not depend on controllers.
+- Repository interfaces should contain only persistence logic.
+- Validate all user input in the service layer before persisting data.
+- Throw descriptive `IllegalArgumentException` messages for validation failures.
+- Follow existing naming conventions throughout the project.
+- Keep methods focused on a single responsibility.
+- Prefer immutable objects where practical.
+- Reuse existing services and utilities instead of duplicating logic.
 
-## Key Patterns & Conventions
+---
 
-### Service Layer Validation
-Services throw `IllegalArgumentException` with descriptive messages (caught by controllers and passed to UI):
-```java
-// Pattern: Validate before persisting
-if (originalUrl == null || originalUrl.isBlank()) {
-    throw new IllegalArgumentException("Original URL cannot be empty");
-}
+# Spring Boot Guidelines
+
+- Use `@Service` for business logic.
+- Use `@Transactional` where data consistency is required.
+- Prefer constructor injection.
+- Use `Optional` instead of returning `null` where appropriate.
+- Keep Thymeleaf controllers returning view names.
+- Follow the existing layered architecture:
+  ```
+  Controller
+      ↓
+    Service
+      ↓
+   Repository
+      ↓
+    Database
+  ```
+- Keep controller methods concise and delegate logic to services.
+
+---
+
+# Security Requirements
+
+Whenever adding or modifying features:
+
+- Never expose dashboard functionality without authentication.
+- Validate all user input.
+- Continue using `BCryptPasswordEncoder` for password hashing.
+- Prevent duplicate aliases using both service validation and database constraints.
+- Protect against common vulnerabilities such as invalid input and malicious requests.
+- Preserve existing Spring Security configuration unless explicitly changing authentication behavior.
+
+---
+
+# Production Mindset
+
+Always prefer production-ready implementations over demo shortcuts.
+
+When implementing new features, consider:
+
+- Scalability
+- Concurrency
+- Security
+- Input validation
+- Logging
+- Monitoring
+- Testability
+- Error handling
+
+If multiple implementation approaches exist, prefer the one suitable for long-term production maintenance.
+
+---
+
+# Testing Expectations
+
+Every new feature should include appropriate tests.
+
+Prefer integration tests using:
+
+- `@SpringBootTest`
+- `@Transactional`
+
+Tests should verify:
+
+- Happy path
+- Validation failures
+- Authorization
+- Duplicate data handling
+- Edge cases
+
+Avoid adding features without corresponding test coverage.
+
+---
+
+# AI Assistant Behavior
+
+When modifying existing code:
+
+- Reuse existing services whenever possible.
+- Preserve the current architecture.
+- Do not introduce unnecessary frameworks or libraries.
+- Do not rewrite working code unless explicitly requested.
+- Keep code style consistent with the existing project.
+- Explain significant architectural changes before implementing them.
+- Generate code that is easy for other developers to understand and maintain.
+- If a production concern is identified (security, scalability, concurrency, etc.), mention it and suggest improvements.
+
+---
+
+# Project Architecture
+
+The project follows a standard Spring Boot layered architecture.
+
+```
+Client
+   │
+   ▼
+Controllers
+   │
+   ▼
+Services
+   │
+   ▼
+Repositories
+   │
+   ▼
+Database
 ```
 
-### Custom Alias Validation
-Regex pattern: `^[a-zA-Z0-9_-]{3,20}$` (enforced in both service and controller route regex `/{code:[a-zA-Z0-9_-]{3,20}}`)
+### Controllers
 
-### User Ownership Verification
-Always check `shortUrl.getUser().getId().equals(user.getId())` before allowing modifications (see `viewAnalytics()` and `deleteShortUrl()`)
+- `AuthController` — Login and registration
+- `DashboardController` — Dashboard, URL creation, analytics
+- `RedirectController` — URL redirection and click tracking
 
-### Database Timestamps
-Use `LocalDateTime.now()` in `@PrePersist` methods for consistency; stored/retrieved as-is (H2 default behavior)
+### Services
 
-### User-Agent Parsing
-`UserAgentParser` contains static methods mapping UA strings to browser/OS names. Handles Chrome, Firefox, Safari, Edge. Returns "Unknown" for unrecognized agents.
+- `UserService` — User management
+- `ShortUrlService` — URL creation, validation, analytics
+- `QrCodeService` — QR code generation
+- `UserAgentParser` — Browser and OS detection
 
-## Development Workflow
+### Persistence
 
-### Build & Run
+- `User`
+- `ShortUrl`
+- `ClickAnalytic`
+
+---
+
+# Validation Rules
+
+- Custom alias regex:
+
+```
+^[a-zA-Z0-9_-]{3,20}$
+```
+
+- Reserved aliases (`login`, `register`, `dashboard`, etc.) are blocked.
+- Duplicate aliases are validated before persistence.
+- Redirect route:
+
+```
+/{code:[a-zA-Z0-9_-]{3,20}}
+```
+
+---
+
+# Development Workflow
+
+Build:
+
 ```bash
-mvn clean install          # Compile, run tests
-mvn spring-boot:run        # Start server on :8080
+mvn clean install
 ```
 
-### Testing
-- Integration tests in `UrlShortenerApplicationTests.java` use `@SpringBootTest` + `@Transactional`
-- Test fixtures created in `@BeforeEach` (user registration, URL creation)
-- Assert custom alias validation, duplicate detection, click recording with correct parsing
+Run:
 
-### Database
-- H2 file-based: `./data/urlshortener` (created on first run)
-- Schema auto-updated via `spring.jpa.hibernate.ddl-auto=update`
-- Console accessible at `/h2-console` (permitted in `SecurityConfig`)
-
-### Security Routes
-- Public: `/login`, `/register`, `/css/**`, `/js/**`, `/{code}` (redirect)
-- Protected: `/dashboard`, `/dashboard/**` (require authentication)
-- H2 console: Public but frame-same-origin + CSRF ignored
-
-## Code Examples for Common Tasks
-
-### Adding a New Short Link Validation
-```java
-// In ShortUrlService.createShortUrl()
-if (originalUrl.length() > 2048) {
-    throw new IllegalArgumentException("URL exceeds maximum length");
-}
+```bash
+mvn spring-boot:run
 ```
 
-### Extending Analytics Metrics
-1. Add new `Map<String, Long>` computation in `DashboardController.viewAnalytics()`:
-   ```java
-   Map<String, Long> clicksByCountry = clickLogs.stream()
-       .collect(Collectors.groupingBy(ClickAnalytic::getCountry, Collectors.counting()));
-   ```
-2. Pass to model: `model.addAttribute("clicksByCountry", clicksByCountry)`
-3. Inject in `analytics.html`: `window.analyticsData.clicksByCountry`
-4. Render Chart.js visualization in `analytics.js`
+Test:
 
-### Adding a New Entity
-1. Create `@Entity` class in `entity/` with `@PrePersist` for timestamps
-2. Create corresponding `@Repository` interface extending `JpaRepository<YourEntity, Long>`
-3. Wire into service via constructor injection
-4. Add integration tests before deploying
+```bash
+mvn test
+```
 
-## External Dependencies
-- **Spring Boot 3.3.1**: Web framework, security, JPA/Hibernate
-- **H2 Database**: File-based SQL database (zero configuration)
-- **ZXing 3.5.3**: QR code generation (uses `MatrixToImageWriter` for PNG output)
-- **Thymeleaf**: Server-side template rendering
-- **Chart.js**: Client-side analytics visualization (CDN-loaded)
+Database:
 
-## IDE Setup & Debugging
-- Java 21 required (specified in `pom.xml`)
-- Maven projects auto-recognized in VS Code with Spring extension
-- Debug breakpoints in services; use `localhost:8080/h2-console` to inspect schema/data
-- Hot reload: Modify templates and refresh; services require rebuild
+- H2 file-based database (`./data/urlshortener`)
+- Hibernate schema auto-update enabled
+- H2 Console available at `/h2-console`
 
-## Cautionary Notes
-- **No API versioning**: Redirect responses are simple 302 redirects; changes to controller paths break existing links
-- **QR generation can fail silently**: `QrCodeService` returns null on error; ensure DB migration if adding NOT NULL constraint
-- **Click timestamps are server-local**: No timezone consideration; assumes single server deployment
-- **No rate limiting**: Anonymous redirect traffic can spike analytics tables; add pagination if needed for large datasets
+---
+
+# Future Enhancements
+
+When extending this project, prefer implementations that support:
+
+- PostgreSQL
+- Redis caching
+- Rate limiting
+- Docker
+- CI/CD pipelines
+- Health checks
+- Structured logging
+- Monitoring and metrics
+- OpenAPI / Swagger documentation
+- Cloud deployment readiness
