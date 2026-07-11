@@ -28,8 +28,7 @@ public class SecurityConfig {
                     new AntPathRequestMatcher("/register"),
                     new AntPathRequestMatcher("/css/**"),
                     new AntPathRequestMatcher("/js/**"),
-                    new AntPathRequestMatcher("/favicon.ico"),
-                    new AntPathRequestMatcher("/h2-console/**")
+                    new AntPathRequestMatcher("/favicon.ico")
                 ).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/{code:[a-zA-Z0-9_-]{3,20}}")).permitAll()
                 .anyRequest().authenticated()
@@ -48,8 +47,7 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             )
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-            .csrf(csrf -> csrf.ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**")));
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }

@@ -13,7 +13,7 @@ This project explores how far AI can go in building a real-world application—a
 - 📱 QR code generation using ZXing
 - 📊 Click analytics (browser, operating system, referrer, timestamps)
 - 📈 Interactive dashboard powered by Thymeleaf and Chart.js
-- 💾 Persistent H2 file-based database for local development
+- 💾 Persistent PostgreSQL database for storage
 - ✅ Alias validation and duplicate detection
 - 🛡️ Spring Security route protection
 
@@ -29,7 +29,7 @@ This project explores how far AI can go in building a real-world application—a
 - Thymeleaf
 - Chart.js
 - ZXing
-- H2 Database
+- PostgreSQL
 - Maven
 
 ---
@@ -49,7 +49,7 @@ Services
 Repositories
    │
    ▼
-H2 Database
+PostgreSQL Database
 ```
 
 ### Controllers
@@ -76,30 +76,32 @@ H2 Database
 
 - Java 21
 - Maven
+- Docker (for local PostgreSQL database)
 
 ### Run Locally
 
-```bash
-mvn clean install
-mvn spring-boot:run
-```
+1. **Start the local PostgreSQL database** using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+   This runs PostgreSQL in the background on port `5432` with username/password/database defaults.
+
+2. **Configure environment variables** (optional, default configurations in `application.properties` match Docker Compose setup):
+   - `SPRING_DATASOURCE_URL` – database connection URL (e.g. `jdbc:postgresql://localhost:5432/urlshortener`)
+   - `SPRING_DATASOURCE_USERNAME` – database username
+   - `SPRING_DATASOURCE_PASSWORD` – database password
+   - `SPRING_DATASOURCE_DRIVER_CLASS_NAME` – JDBC driver class name
+   - `SPRING_JPA_DATABASE_PLATFORM` – Hibernate dialect
+
+3. **Build and run the application**:
+   ```bash
+   mvn clean install
+   mvn spring-boot:run
+   ```
 
 Open:
-
 ```
 http://localhost:8080
-```
-
-H2 Console:
-
-```
-http://localhost:8080/h2-console
-```
-
-Database location:
-
-```
-./data/urlshortener
 ```
 
 ---
@@ -160,10 +162,7 @@ Tests cover:
 
 This project intentionally focuses on a working MVP. Before deploying to production, I would add:
 
-- PostgreSQL
 - Redis caching
-- Rate limiting
-- Docker support
 - CI/CD pipeline
 - Monitoring & metrics
 - Health checks
