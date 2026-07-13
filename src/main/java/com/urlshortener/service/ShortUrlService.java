@@ -6,6 +6,8 @@ import com.urlshortener.entity.User;
 import com.urlshortener.repository.ClickAnalyticRepository;
 import com.urlshortener.repository.ShortUrlRepository;
 import com.urlshortener.util.UserAgentParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,8 @@ import java.util.Optional;
 
 @Service
 public class ShortUrlService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ShortUrlService.class);
 
     private final ShortUrlRepository shortUrlRepository;
     private final ClickAnalyticRepository clickAnalyticRepository;
@@ -58,6 +62,7 @@ public class ShortUrlService {
     @Transactional
     public ShortUrl createShortUrl(String originalUrl, String customAlias, String title, User user, String baseUrl) throws IllegalArgumentException {
         if (originalUrl == null || originalUrl.isBlank()) {
+            logger.warn("Short URL creation failed: Original URL is empty for user: {}", user.getUsername());
             throw new IllegalArgumentException("Original URL cannot be empty");
         }
         
@@ -71,15 +76,19 @@ public class ShortUrlService {
         if (customAlias != null && !customAlias.isBlank()) {
             customAlias = customAlias.trim();
             if (!customAlias.matches("^[a-zA-Z0-9_-]{3,20}$")) {
+                logger.warn("Short URL creation failed: Custom alias '{}' does not match pattern, requested by user: {}", customAlias, user.getUsername());
                 throw new IllegalArgumentException("Custom alias must be 3-20 characters long and contain only letters, numbers, underscores, or hyphens");
             }
             if (shortUrlRepository.existsByShortCode(customAlias)) {
+                logger.warn("Short URL creation failed: Custom alias '{}' is already in use, requested by user: {}", customAlias, user.getUsername());
                 throw new IllegalArgumentException("Custom alias '" + customAlias + "' is already in use");
             }
             if (isReservedKeyword(customAlias)) {
+                logger.warn("Short URL creation failed: Custom alias '{}' is a reserved system keyword, requested by user: {}", customAlias, user.getUsername());
                 throw new IllegalArgumentException("Custom alias '" + customAlias + "' is a reserved system keyword");
             }
             shortCode = customAlias;
+            logger.info("User '{}' requested custom alias: '{}' for original URL: '{}'", user.getUsername(), customAlias, originalUrl);
         } else {
             shortCode = generateUniqueShortCode();
         }
@@ -91,15 +100,22 @@ public class ShortUrlService {
         String qrCode = qrCodeService.generateQrCodeBase64(fullShortUrl, 250, 250);
         shortUrl.setQrCodeBase64(qrCode);
 
-        return shortUrlRepository.save(shortUrl);
+        ShortUrl savedShortUrl = shortUrlRepository.save(shortUrl);
+        logger.info("Successfully created short URL. Code: {}, Original URL: {}, Created by user: {}", shortCode, originalUrl, user.getUsername());
+        return savedShortUrl;
     }
 
     @Transactional
     public void deleteShortUrl(Long id, User user) {
         ShortUrl shortUrl = shortUrlRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("URL not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Short URL deletion failed: URL with ID {} not found, requested by user: {}", id, user.getUsername());
+                    return new IllegalArgumentException("URL not found");
+                });
         
         if (!shortUrl.getUser().getId().equals(user.getId())) {
+            logger.warn("Unauthorized short URL deletion attempt: User '{}' tried to delete URL with ID {} owned by User '{}'", 
+                    user.getUsername(), id, shortUrl.getUser().getUsername());
             throw new SecurityException("Unauthorized to delete this URL");
         }
 
@@ -109,6 +125,7 @@ public class ShortUrlService {
         
         // Delete URL
         shortUrlRepository.delete(shortUrl);
+        logger.info("Successfully deleted short URL. Code: {}, ID: {}, Deleted by user: {}", shortUrl.getShortCode(), id, user.getUsername());
     }
 
     @Transactional

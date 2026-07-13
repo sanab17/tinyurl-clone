@@ -166,8 +166,18 @@ This project intentionally focuses on a working MVP. Before deploying to product
 - CI/CD pipeline
 - Monitoring & metrics
 - Health checks
-- Structured logging
 - API documentation (OpenAPI/Swagger)
+
+---
+
+## 📊 Logging Strategy
+
+The application implements a production-grade logging strategy using SLF4J and Logback:
+
+- **Business Flow Events (`INFO`):** Logged on successful user registrations, successful login occurrences, short URL creations, custom alias selections, redirections, QR code generations, and deletion actions.
+- **Warnings (`WARN`):** Logged on client side validation anomalies (e.g. empty URLs, invalid formatting, duplicate requests), rate limit exclusions, and unauthorized deletion requests.
+- **Errors (`ERROR`):** Logged on database access failures or unhandled exceptions, captured centrally by a `GlobalExceptionHandler`.
+- **Security Compliance:** Parameters containing passwords, raw credentials, or session values are strictly excluded from output streams. Placeholders (`{}`) are consistently utilized for string construction.
 
 ---
 

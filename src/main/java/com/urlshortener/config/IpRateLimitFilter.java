@@ -6,12 +6,16 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
 
 public class IpRateLimitFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(IpRateLimitFilter.class);
 
     private final LoadingCache<String, Bucket> bucketCache;
     private final String rateLimitEndpoint;
@@ -43,6 +47,8 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+
+        logger.warn("Rate limit exceeded for client IP: {} on endpoint: {}", clientIp, request.getServletPath());
 
         response.setStatus(429);
         response.setHeader("Retry-After", String.valueOf(retryAfter.toSeconds()));
