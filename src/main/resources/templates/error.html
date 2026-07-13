@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - URL Shortener</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card" style="text-align: center; max-width: 480px; padding: 40px;">
+            <div class="auth-header" style="margin-bottom: 24px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ff416c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 20px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h1 style="font-size: 2rem; margin-bottom: 12px; color: #ff416c;" th:text="${status != null ? 'Error ' + status : 'An Error Occurred'}">An Error Occurred</h1>
+                <p style="font-size: 1.1rem; line-height: 1.6; color: #a0aec0;" th:text="${errorMessage}">We're sorry, but an unexpected error occurred. Please try again later.</p>
+            </div>
+            <a th:href="@{/dashboard}" class="btn btn-primary" style="display: inline-block; padding: 12px 28px; font-weight: 600;">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

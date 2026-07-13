@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.FlashMapManager;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -49,6 +52,19 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
         }
 
         logger.warn("Rate limit exceeded for client IP: {} on endpoint: {}", clientIp, request.getServletPath());
+
+        String acceptHeader = request.getHeader("Accept");
+        if (acceptHeader != null && acceptHeader.contains("text/html")) {
+            FlashMap flashMap = new FlashMap();
+            flashMap.put("errorMessage", "You are doing that too fast. Please wait a moment before trying again.");
+            
+            // Instantiated directly to bypass the uninitialized DispatcherServlet attributes
+            FlashMapManager flashMapManager = new SessionFlashMapManager();
+            flashMapManager.saveOutputFlashMap(flashMap, request, response);
+            
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return;
+        }
 
         response.setStatus(429);
         response.setHeader("Retry-After", String.valueOf(retryAfter.toSeconds()));

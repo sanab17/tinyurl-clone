@@ -63,7 +63,7 @@ public class ShortUrlService {
     public ShortUrl createShortUrl(String originalUrl, String customAlias, String title, User user, String baseUrl) throws IllegalArgumentException {
         if (originalUrl == null || originalUrl.isBlank()) {
             logger.warn("Short URL creation failed: Original URL is empty for user: {}", user.getUsername());
-            throw new IllegalArgumentException("Original URL cannot be empty");
+            throw new IllegalArgumentException("Destination URL is required.");
         }
         
         // Clean URL to ensure it has scheme (http/https)
@@ -77,15 +77,15 @@ public class ShortUrlService {
             customAlias = customAlias.trim();
             if (!customAlias.matches("^[a-zA-Z0-9_-]{3,20}$")) {
                 logger.warn("Short URL creation failed: Custom alias '{}' does not match pattern, requested by user: {}", customAlias, user.getUsername());
-                throw new IllegalArgumentException("Custom alias must be 3-20 characters long and contain only letters, numbers, underscores, or hyphens");
+                throw new IllegalArgumentException("Custom alias must be 3-20 characters long and contain only letters, numbers, underscores, or hyphens.");
             }
             if (shortUrlRepository.existsByShortCode(customAlias)) {
                 logger.warn("Short URL creation failed: Custom alias '{}' is already in use, requested by user: {}", customAlias, user.getUsername());
-                throw new IllegalArgumentException("Custom alias '" + customAlias + "' is already in use");
+                throw new IllegalArgumentException("Custom alias '" + customAlias + "' is already in use.");
             }
             if (isReservedKeyword(customAlias)) {
                 logger.warn("Short URL creation failed: Custom alias '{}' is a reserved system keyword, requested by user: {}", customAlias, user.getUsername());
-                throw new IllegalArgumentException("Custom alias '" + customAlias + "' is a reserved system keyword");
+                throw new IllegalArgumentException("Custom alias '" + customAlias + "' is a reserved system keyword.");
             }
             shortCode = customAlias;
             logger.info("User '{}' requested custom alias: '{}' for original URL: '{}'", user.getUsername(), customAlias, originalUrl);

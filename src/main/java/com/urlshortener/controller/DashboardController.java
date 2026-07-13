@@ -66,7 +66,7 @@ public class DashboardController {
 
         try {
             shortUrlService.createShortUrl(originalUrl, customAlias, title, user, baseUrl);
-            redirectAttributes.addFlashAttribute("successMessage", "Short link created successfully!");
+            redirectAttributes.addFlashAttribute("successMessage", "Short link and QR code created successfully!");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             redirectAttributes.addFlashAttribute("originalUrl", originalUrl);
@@ -82,7 +82,7 @@ public class DashboardController {
         User user = getCurrentUser(principal);
         try {
             shortUrlService.deleteShortUrl(id, user);
-            redirectAttributes.addFlashAttribute("successMessage", "Short link deleted successfully.");
+            redirectAttributes.addFlashAttribute("successMessage", "Short link has been deleted successfully.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

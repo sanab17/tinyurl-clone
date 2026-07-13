@@ -48,15 +48,15 @@ public class UserService implements UserDetailsService {
     public User registerUser(String username, String password) throws IllegalArgumentException {
         if (username == null || username.isBlank()) {
             logger.warn("Registration failed: Username cannot be empty");
-            throw new IllegalArgumentException("Username cannot be empty");
+            throw new IllegalArgumentException("Username is required.");
         }
         if (userRepository.existsByUsername(username)) {
             logger.warn("Registration failed: Username '{}' already exists", username);
-            throw new IllegalArgumentException("Username already exists");
+            throw new IllegalArgumentException("This username is already taken. Please choose another.");
         }
         if (password == null || password.length() < 6) {
             logger.warn("Registration failed: Password too short for username '{}'", username);
-            throw new IllegalArgumentException("Password must be at least 6 characters long");
+            throw new IllegalArgumentException("Password must be at least 6 characters long.");
         }
         User user = new User(username, passwordEncoder.encode(password));
         User savedUser = userRepository.save(user);
