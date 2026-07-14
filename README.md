@@ -181,6 +181,22 @@ The application implements a production-grade logging strategy using SLF4J and L
 
 ---
 
+## 🛡️ Error Handling Strategy
+
+The application features a robust, secure, and user-friendly error handling system to protect system diagnostics while guiding users:
+
+- **Centralized Exception Handling (`@ControllerAdvice`):** Intercepts exceptions globally in `GlobalExceptionHandler` to prevent raw stack trace disclosures or framework version leakages.
+- **Dedicated Error Views:** Status-specific pages (located under `src/main/resources/templates/error/`) render custom messages matching the cyber-glass design system:
+  - **400 Bad Request:** Friendly guidance on structural payload faults.
+  - **401 Unauthorized:** Prompts users to log in securely.
+  - **403 Forbidden:** Block banner warning of missing permissions.
+  - **404 Not Found:** Guide visitors on missing/moved URLs.
+  - **429 Too Many Requests:** Warns users when thresholds are breached.
+  - **500 Server Error:** Generic message to reassure users during server faults.
+- **Secure Logs, Safe UI:** The system outputs stack traces and developer-focused details safely to the internal application logs, while only presenting sanitized context-free messages to the end-users.
+
+---
+
 ## 🎬 AI App Builder Series
 
 This repository is part of my **"Can AI Build Real Apps?"** series, where I evaluate AI-generated code like a real pull request and progressively improve it into a production-ready application.

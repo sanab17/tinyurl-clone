@@ -39,7 +39,7 @@ public class DashboardController {
     public String dashboard(Model model, Principal principal, HttpServletRequest request) {
         User user = getCurrentUser(principal);
         List<ShortUrl> urls = shortUrlService.getUrlsByUser(user);
-        
+
         long totalUrls = shortUrlService.getUrlCountByUser(user);
         int totalClicks = shortUrlService.getTotalClicksByUser(user);
 
@@ -50,17 +50,17 @@ public class DashboardController {
         model.addAttribute("totalUrls", totalUrls);
         model.addAttribute("totalClicks", totalClicks);
         model.addAttribute("baseUrl", baseUrl);
-        
+
         return "dashboard";
     }
 
     @PostMapping("/create")
     public String createShortUrl(@RequestParam("originalUrl") String originalUrl,
-                                 @RequestParam(value = "customAlias", required = false) String customAlias,
-                                 @RequestParam(value = "title", required = false) String title,
-                                 Principal principal,
-                                 HttpServletRequest request,
-                                 RedirectAttributes redirectAttributes) {
+            @RequestParam(value = "customAlias", required = false) String customAlias,
+            @RequestParam(value = "title", required = false) String title,
+            Principal principal,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
         User user = getCurrentUser(principal);
         String baseUrl = request.getScheme() + "://" + request.getHeader("host");
 
@@ -78,7 +78,8 @@ public class DashboardController {
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteShortUrl(@PathVariable("id") Long id, Principal principal, RedirectAttributes redirectAttributes) {
+    public String deleteShortUrl(@PathVariable("id") Long id, Principal principal,
+            RedirectAttributes redirectAttributes) {
         User user = getCurrentUser(principal);
         try {
             shortUrlService.deleteShortUrl(id, user);
@@ -90,7 +91,8 @@ public class DashboardController {
     }
 
     @GetMapping("/analytics/{code}")
-    public String viewAnalytics(@PathVariable("code") String code, Model model, Principal principal, HttpServletRequest request) {
+    public String viewAnalytics(@PathVariable("code") String code, Model model, Principal principal,
+            HttpServletRequest request) {
         User user = getCurrentUser(principal);
         ShortUrl shortUrl = shortUrlService.getByShortCode(code)
                 .orElseThrow(() -> new IllegalArgumentException("Short link not found"));
@@ -104,35 +106,31 @@ public class DashboardController {
         List<ClickAnalytic> latestLogs = shortUrlService.getLatestClicksForUrl(shortUrl);
 
         // Compute aggregate metrics
-        
+
         // 1. Clicks by Date (TreeMap to keep it sorted chronologically)
         Map<String, Long> clicksByDate = clickLogs.stream()
                 .collect(Collectors.groupingBy(
                         click -> click.getClickTime().toLocalDate().toString(),
                         TreeMap::new,
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         // 2. Clicks by Browser
         Map<String, Long> clicksByBrowser = clickLogs.stream()
                 .collect(Collectors.groupingBy(
                         ClickAnalytic::getBrowser,
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         // 3. Clicks by Operating System
         Map<String, Long> clicksByOs = clickLogs.stream()
                 .collect(Collectors.groupingBy(
                         ClickAnalytic::getOperatingSystem,
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         // 4. Clicks by Referrer
         Map<String, Long> clicksByReferrer = clickLogs.stream()
                 .collect(Collectors.groupingBy(
                         ClickAnalytic::getReferrer,
-                        Collectors.counting()
-                ));
+                        Collectors.counting()));
 
         String baseUrl = request.getScheme() + "://" + request.getHeader("host");
 

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Internal Server Error - AetherLink</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card" style="text-align: center; max-width: 480px; padding: 40px;">
+            <div class="auth-header" style="margin-bottom: 24px;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ff4757" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 20px;">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                    <path d="M12 2v20"></path>
+                </svg>
+                <h1 style="font-size: 2rem; margin-bottom: 12px; color: var(--danger);">500 Server Error</h1>
+                <p style="font-size: 1.1rem; line-height: 1.6; color: var(--text-secondary);" th:text="${errorMessage != null ? errorMessage : 'An unexpected error occurred on our servers. We''re working on fixing it.'}">An unexpected error occurred on our servers. We're working on fixing it.</p>
+            </div>
+            <a th:href="@{/dashboard}" class="btn btn-primary" style="display: inline-block; padding: 12px 28px; font-weight: 600;">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
