@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -58,6 +59,15 @@ public class GlobalExceptionHandler {
         model.addAttribute("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         model.addAttribute("errorMessage", "A database error occurred. Please try again later.");
         return "error/500";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public String handleNoResourceFoundException(NoResourceFoundException ex, HttpServletResponse response, Model model) {
+        logger.warn("Resource or endpoint not found: {}", ex.getMessage());
+        response.setStatus(HttpStatus.NOT_FOUND.value());
+        model.addAttribute("status", HttpStatus.NOT_FOUND.value());
+        model.addAttribute("errorMessage", "The requested resource could not be found: /" + ex.getResourcePath());
+        return "error/404";
     }
 
     @ExceptionHandler(Exception.class)
