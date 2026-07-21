@@ -18,6 +18,10 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/**
+ * Controller responsible for managing the authenticated user's dashboard.
+ * Provides views and endpoints to create, delete, and view analytics of shortened links.
+ */
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
@@ -25,16 +29,38 @@ public class DashboardController {
     private final ShortUrlService shortUrlService;
     private final UserService userService;
 
+    /**
+     * Constructs the dashboard controller.
+     *
+     * @param shortUrlService the service to handle short URL logic
+     * @param userService     the service to handle user operations
+     */
     public DashboardController(ShortUrlService shortUrlService, UserService userService) {
         this.shortUrlService = shortUrlService;
         this.userService = userService;
     }
 
+    /**
+     * Helper method to retrieve the currently logged-in user details.
+     *
+     * @param principal security principal representing the authenticated user
+     * @return the logged-in {@link User} entity
+     * @throws UsernameNotFoundException if the user does not exist in the database
+     */
     private User getCurrentUser(Principal principal) {
         return userService.findByUsername(principal.getName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    /**
+     * Renders the user's dashboard view.
+     * Shows a table of existing short links and key aggregate metrics (total links, total clicks).
+     *
+     * @param model     the MVC model context
+     * @param principal security principal of the logged-in user
+     * @param request   the HTTP request used to construct the base short URL domain
+     * @return the dashboard view name
+     */
     @GetMapping
     public String dashboard(Model model, Principal principal, HttpServletRequest request) {
         User user = getCurrentUser(principal);
@@ -54,6 +80,18 @@ public class DashboardController {
         return "dashboard";
     }
 
+    /**
+     * Handles the creation of a new short URL link.
+     * Generates a base64 encoded QR code and registers the URL record in database.
+     *
+     * @param originalUrl        the destination URL to shorten
+     * @param customAlias        optional custom slug/alias requested by the user
+     * @param title              optional user-defined description for the link
+     * @param principal          security principal of the logged-in user
+     * @param request            the HTTP request context to derive base URL domain
+     * @param redirectAttributes redirect context to pass temporary success or error flash attributes
+     * @return redirection back to dashboard
+     */
     @PostMapping("/create")
     public String createShortUrl(@RequestParam("originalUrl") String originalUrl,
             @RequestParam(value = "customAlias", required = false) String customAlias,
@@ -77,6 +115,15 @@ public class DashboardController {
         return "redirect:/dashboard";
     }
 
+    /**
+     * Handles deletion requests for short URLs.
+     * Performs owner-validation checks prior to deletion.
+     *
+     * @param id                 database primary key of the target short URL
+     * @param principal          security principal of the logged-in user
+     * @param redirectAttributes redirect context for flash status notifications
+     * @return redirection back to dashboard
+     */
     @GetMapping("/delete/{id}")
     public String deleteShortUrl(@PathVariable("id") Long id, Principal principal,
             RedirectAttributes redirectAttributes) {
@@ -90,6 +137,18 @@ public class DashboardController {
         return "redirect:/dashboard";
     }
 
+    /**
+     * Aggregates and renders detailed analytics reports for a given short URL code.
+     * Groups clicks by date, browser type, operating system, and HTTP referrer.
+     *
+     * @param code      the unique code slug of the short URL
+     * @param model     the MVC model context
+     * @param principal security principal of the logged-in user
+     * @param request   the HTTP request context to derive base URL domain
+     * @return the analytics details page view name
+     * @throws IllegalArgumentException if the short link code does not exist
+     * @throws SecurityException        if the logged-in user is not the owner of the short URL
+     */
     @GetMapping("/analytics/{code}")
     public String viewAnalytics(@PathVariable("code") String code, Model model, Principal principal,
             HttpServletRequest request) {

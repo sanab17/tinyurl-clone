@@ -11,11 +11,25 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
+/**
+ * Service class that handles the generation of QR Code graphics.
+ * Leverages the Google ZXing library to produce PNG files encoded as Base64 data strings.
+ */
 @Service
 public class QrCodeService {
 
     private static final Logger logger = LoggerFactory.getLogger(QrCodeService.class);
 
+    /**
+     * Generates a QR Code representing the given text, writes it as a PNG stream,
+     * and encodes it into a Base64 string for direct embedding in HTML template image tags.
+     * Returns null if generation encounters an exception.
+     *
+     * @param text   the payload content to encode (typically the shortened URL link)
+     * @param width  the output width in pixels
+     * @param height the output height in pixels
+     * @return the Base64-encoded PNG image string, or null if generation fails
+     */
     public String generateQrCodeBase64(String text, int width, int height) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();

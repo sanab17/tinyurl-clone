@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Controller responsible for redirecting short code request URLs to their destination URLs.
+ * Also parses client info (IP, User-Agent, Referrer) and records click logs.
+ */
 @Controller
 public class RedirectController {
 
@@ -18,10 +22,25 @@ public class RedirectController {
 
     private final ShortUrlService shortUrlService;
 
+    /**
+     * Constructs the redirect controller.
+     *
+     * @param shortUrlService the short URL service containing business logic for redirect/analytics
+     */
     public RedirectController(ShortUrlService shortUrlService) {
         this.shortUrlService = shortUrlService;
     }
 
+    /**
+     * Redirects short code URLs to their original URLs.
+     * Extracts visitor details (IP address, User-Agent, Referrer) to record click analytics,
+     * and performs a HTTP redirect on success. Throws NOT_FOUND if code doesn't exist.
+     *
+     * @param code    the short URL code path parameter
+     * @param request the HTTP servlet request
+     * @return redirect string target
+     * @throws ResponseStatusException HTTP 404 if the short code is not found
+     */
     @GetMapping("/{code:[a-zA-Z0-9_-]{3,20}}")
     public String redirect(@PathVariable("code") String code, HttpServletRequest request) {
         // Retrieve visitor details

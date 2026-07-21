@@ -1,12 +1,24 @@
 package com.urlshortener.util;
 
+/**
+ * Utility helper class for extracting operating system and browser names from HTTP User-Agent header strings.
+ */
 public class UserAgentParser {
 
+    /**
+     * Identifies the browser program used by the visitor.
+     * Evaluates keywords in the user agent string sequentially (Edge, Chrome, Firefox, Safari, Opera, IE).
+     *
+     * @param userAgent the raw User-Agent request header value
+     * @return the classified browser name, "Unknown" if blank, or "Other" if no match
+     */
     public static String parseBrowser(String userAgent) {
         if (userAgent == null || userAgent.isBlank()) {
             return "Unknown";
         }
         String ua = userAgent.toLowerCase();
+        
+        // Sequence check to avoid collision (e.g. Chrome/Safari)
         if (ua.contains("edg/")) {
             return "Edge";
         } else if (ua.contains("chrome/") || ua.contains("crios/")) {
@@ -23,11 +35,19 @@ public class UserAgentParser {
         return "Other";
     }
 
+    /**
+     * Identifies the operating system used by the visitor.
+     * Evaluates keywords in the user agent string sequentially (Windows, macOS, iOS, Android, Linux).
+     *
+     * @param userAgent the raw User-Agent request header value
+     * @return the classified operating system name, "Unknown" if blank, or "Other" if no match
+     */
     public static String parseOS(String userAgent) {
         if (userAgent == null || userAgent.isBlank()) {
             return "Unknown";
         }
         String ua = userAgent.toLowerCase();
+        
         if (ua.contains("windows")) {
             return "Windows";
         } else if (ua.contains("macintosh") || ua.contains("mac os x")) {
