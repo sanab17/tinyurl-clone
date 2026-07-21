@@ -1,5 +1,5 @@
-# Build stage: Use Eclipse Temurin JDK 21 on Alpine Linux as the compilation environment
-FROM eclipse-temurin:21-jdk-alpine AS build
+# Build stage: Use Maven with JDK 21 on Alpine Linux as the compilation environment
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
 
 # Set the working directory inside the container for compilation
 WORKDIR /app
@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy the application source code and Maven wrapper files
 COPY . .
 
-# Run the Maven wrapper to build the executable JAR file, skipping tests to speed up the process
-RUN ./mvnw clean package -DskipTests
+# Run Maven to build the executable JAR file, skipping tests to speed up the process
+RUN mvn clean package -DskipTests
 
 # Runtime stage: Use a lightweight JRE 21 on Alpine Linux to execute the application
 FROM eclipse-temurin:21-jre-alpine
